@@ -1,15 +1,18 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Plus, Users, Utensils, Hash, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Plus, Users, Utensils, Hash, AlertTriangle, Key } from "lucide-react";
 import { useData } from "../context/DataContext";
 
 export default function Admin() {
-  const { participants, scores, violationDefs, violationRecords, addParticipant, addViolationDefinition } = useData();
+  const { participants, scores, violationDefs, violationRecords, judges, addParticipant, addViolationDefinition, registerJudge } = useData();
   const [name, setName] = useState("");
   const [dish, setDish] = useState("");
   
   const [vName, setVName] = useState("");
   const [vPenalty, setVPenalty] = useState("5");
+
+  const [accessId, setAccessId] = useState("");
+  const [accessRole, setAccessRole] = useState<"judge" | "supervisor">("judge");
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,12 +30,19 @@ export default function Admin() {
     setVPenalty("5");
   };
 
+  const handleAddAccess = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!accessId.trim()) return;
+    await registerJudge(accessId.trim(), accessRole);
+    setAccessId("");
+  };
+
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 p-6 md:p-12">
-      <div className="max-w-6xl mx-auto space-y-8">
+    <div className="min-h-screen bg-slate-900 text-slate-100 p-6 md:p-12 pb-24">
+      <div className="max-w-7xl mx-auto space-y-8">
         <div className="flex items-center justify-between">
           <Link to="/" className="inline-flex items-center text-slate-400 hover:text-white transition-colors">
-            <ArrowLeft className="w-5 h-5 mr-2" /> Kembali
+            <ArrowLeft className="w-5 h-5 mr-2" /> Kembali ke Login
           </Link>
           <div className="flex items-center space-x-2 bg-emerald-500/10 text-emerald-500 px-4 py-2 rounded-full border border-emerald-500/20">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -42,11 +52,12 @@ export default function Admin() {
 
         <div>
           <h1 className="text-3xl font-bold text-white mb-2">Dashboard Penyelenggara</h1>
-          <p className="text-slate-400">Kelola peserta dan metrik kompetisi Al Muttaqin Master Chef.</p>
+          <p className="text-slate-400">Kelola peserta, jenis pelanggaran, peran akses, dan pantau metrik.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="md:col-span-1 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-1 space-y-6">
+            {/* Registrasi Peserta Baru */}
             <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700">
               <h2 className="text-lg font-bold text-white flex items-center mb-6">
                 <Plus className="w-5 h-5 mr-2 text-emerald-400" />
@@ -84,6 +95,7 @@ export default function Admin() {
               </form>
             </div>
             
+            {/* Tambah Pelanggaran */}
             <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700">
               <h2 className="text-lg font-bold text-white flex items-center mb-6">
                 <AlertTriangle className="w-5 h-5 mr-2 text-red-400" />
@@ -121,22 +133,52 @@ export default function Admin() {
               </form>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-slate-800 rounded-2xl p-4 border border-slate-700 text-center">
-                <p className="text-slate-400 text-sm font-medium">Nilai Masuk</p>
-                <p className="text-2xl font-bold text-amber-500 mt-1">{scores.length}</p>
-              </div>
-              <div className="bg-slate-800 rounded-2xl p-4 border border-slate-700 text-center">
-                <p className="text-slate-400 text-sm font-medium">Pelanggaran</p>
-                <p className="text-2xl font-bold text-red-500 mt-1">{violationRecords.length}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="md:col-span-2 space-y-6">
+            {/* Buat Akses */}
             <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700">
               <h2 className="text-lg font-bold text-white flex items-center mb-6">
-                <Users className="w-5 h-5 mr-2 text-blue-400" />
+                <Key className="w-5 h-5 mr-2 text-amber-400" />
+                Buat Akses Juri/Pengawas
+              </h2>
+              <form onSubmit={handleAddAccess} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">ID Akses Baru</label>
+                  <input
+                    type="text"
+                    value={accessId}
+                    onChange={(e) => setAccessId(e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all font-medium"
+                    placeholder="Contoh: juri_ahmad"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Pilih Peran</label>
+                  <select
+                    value={accessRole}
+                    onChange={(e) => setAccessRole(e.target.value as "judge" | "supervisor")}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all font-medium"
+                  >
+                    <option value="judge">Juri Penilai</option>
+                    <option value="supervisor">Pengawas Waktu</option>
+                  </select>
+                </div>
+                <button
+                  type="submit"
+                  className="w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center"
+                >
+                  <Plus className="w-5 h-5 mr-2" /> Buat Akses
+                </button>
+              </form>
+            </div>
+            
+          </div>
+
+          <div className="lg:col-span-2 space-y-6">
+            
+            {/* Daftar Peserta */}
+            <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700">
+              <h2 className="text-lg font-bold text-white flex items-center mb-6">
+                <Utensils className="w-5 h-5 mr-2 text-blue-400" />
                 Daftar Peserta ({participants.length})
               </h2>
 
@@ -195,27 +237,59 @@ export default function Admin() {
               )}
             </div>
 
-            <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700">
-              <h2 className="text-lg font-bold text-white flex items-center mb-6">
-                <AlertTriangle className="w-5 h-5 mr-2 text-red-400" />
-                Daftar Jenis Pelanggaran Tersedia ({violationDefs.length})
-              </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+               {/* Daftar Akses Aktif */}
+               <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700">
+                  <h2 className="text-lg font-bold text-white flex items-center mb-6">
+                    <Users className="w-5 h-5 mr-2 text-cyan-400" />
+                    Akses Terdaftar ({judges.length})
+                  </h2>
 
-              {violationDefs.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-slate-400 font-medium">Belum ada jenis pelanggaran.</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {violationDefs.map((def) => (
-                    <div key={def.id} className="bg-slate-900 border border-slate-700 rounded-xl p-4 flex justify-between items-center">
-                      <span className="font-medium text-slate-200">{def.name}</span>
-                      <span className="bg-red-500/10 text-red-400 px-3 py-1 rounded-lg font-bold">-{def.penalty_points} Pts</span>
+                  {judges.length === 0 ? (
+                    <div className="text-center py-8">
+                      <p className="text-slate-400 font-medium">Belum ada akun/akses terdaftar.</p>
                     </div>
-                  ))}
-                </div>
-              )}
+                  ) : (
+                    <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
+                      {judges.map((j) => (
+                        <div key={j.id} className="bg-slate-900 border border-slate-700 rounded-xl p-3 flex justify-between items-center">
+                          <span className="font-medium text-slate-200">{j.name}</span>
+                          <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${
+                            j.role === 'admin' ? 'bg-purple-500/20 text-purple-400' :
+                            j.role === 'supervisor' ? 'bg-blue-500/20 text-blue-400' : 'bg-emerald-500/20 text-emerald-400'
+                          }`}>
+                            {j.role === 'admin' ? 'Admin' : j.role === 'supervisor' ? 'Pengawas' : 'Juri'}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+               </div>
+
+               {/* Daftar Pelanggaran */}
+               <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700 flex flex-col">
+                  <h2 className="text-lg font-bold text-white flex items-center mb-6">
+                    <AlertTriangle className="w-5 h-5 mr-2 text-red-400" />
+                    Jenis Pelanggaran ({violationDefs.length})
+                  </h2>
+
+                  {violationDefs.length === 0 ? (
+                    <div className="text-center py-8 flex-1">
+                      <p className="text-slate-400 font-medium">Belum ada jenis pelanggaran.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
+                      {violationDefs.map((def) => (
+                        <div key={def.id} className="bg-slate-900 border border-slate-700 rounded-xl p-4 flex justify-between items-center">
+                          <span className="font-medium text-slate-200 text-sm leading-tight mr-4">{def.name}</span>
+                          <span className="bg-red-500/10 text-red-400 px-3 py-1 rounded-lg font-bold text-sm shrink-0">-{def.penalty_points} Pts</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+               </div>
             </div>
+
           </div>
         </div>
       </div>

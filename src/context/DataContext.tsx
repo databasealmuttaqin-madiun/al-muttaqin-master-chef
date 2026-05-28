@@ -9,7 +9,7 @@ interface DataContextType {
   violationDefs: ViolationDefinition[];
   violationRecords: ViolationRecord[];
   addParticipant: (name: string, dish_name: string) => Promise<void>;
-  registerJudge: (name: string, role: 'judge' | 'supervisor') => Promise<Judge>;
+  registerJudge: (name: string, role: 'judge' | 'supervisor' | 'admin') => Promise<Judge>;
   submitScore: (scoreEntry: Omit<Score, "id" | "created_at" | "total">) => Promise<void>;
   addViolationDefinition: (name: string, penalty_points: number) => Promise<void>;
   recordViolation: (participant_id: string, supervisor_id: string, violation_id: string, penalty_applied: number) => Promise<void>;
@@ -42,7 +42,17 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           supabase.from("violation_records").select("*"),
         ]);
         if (pRes.data) setParticipants(pRes.data);
-        if (jRes.data) setJudges(jRes.data);
+        
+        let judgesData = jRes.data || [];
+        const adminsToSeed = ["angie_seprisa", "fahmi_maulana"];
+        for (const adminName of adminsToSeed) {
+           if (!judgesData.some((j: Judge) => j.name === adminName)) {
+              const res = await supabase.from("judges").insert([{ name: adminName, role: "admin" }]).select().single();
+              if (res.data) judgesData.push(res.data);
+           }
+        }
+        setJudges(judgesData);
+
         if (sRes.data) setScores(sRes.data);
         if (vdRes.data) setViolationDefs(vdRes.data);
         if (vrRes.data) setViolationRecords(vrRes.data);
@@ -77,10 +87,24 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     } else {
       // Local fallback using localStorage to allow multi-tab preview
       const localP = JSON.parse(localStorage.getItem("mock_participants") || "[]");
-      const localJ = JSON.parse(localStorage.getItem("mock_judges") || "[]");
+      let localJ = JSON.parse(localStorage.getItem("mock_judges") || "[]");
       const localS = JSON.parse(localStorage.getItem("mock_scores") || "[]");
       const localVD = JSON.parse(localStorage.getItem("mock_violation_defs") || "[]");
       const localVR = JSON.parse(localStorage.getItem("mock_violation_records") || "[]");
+      
+      // Seed Admins locally
+      const mockAdmins = [
+        { id: "admin_1", name: "angie_seprisa", role: "admin", created_at: new Date().toISOString() },
+        { id: "admin_2", name: "fahmi_maulana", role: "admin", created_at: new Date().toISOString() }
+      ];
+      let jUpdated = false;
+      for (const a of mockAdmins) {
+        if (!localJ.some((j: Judge) => j.name === a.name)) {
+          localJ.push(a);
+          jUpdated = true;
+        }
+      }
+      if (jUpdated) localStorage.setItem("mock_judges", JSON.stringify(localJ));
       
       if (localP.length === 0) {
         // Seed initial mock data
@@ -127,7 +151,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const registerJudge = async (name: string, role: 'judge' | 'supervisor'): Promise<Judge> => {
+  const registerJudge = async (name: string, role: 'judge' | 'supervisor' | 'admin'): Promise<Judge> => {
     // Check if exists
     const existing = judges.find((j) => j.name.toLowerCase() === name.toLowerCase() && j.role === role);
     if (existing) return existing;

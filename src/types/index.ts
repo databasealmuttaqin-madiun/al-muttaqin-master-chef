@@ -8,7 +8,7 @@ export interface Participant {
 export interface Judge {
   id: string;
   name: string;
-  role: 'judge' | 'supervisor';
+  role: 'judge' | 'supervisor' | 'admin';
   created_at: string;
 }
 
