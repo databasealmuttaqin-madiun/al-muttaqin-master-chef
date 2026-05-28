@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 8px;
+}
+
+*:hover::-webkit-scrollbar-thumb {
+  background: rgba(71, 85, 105, 0.5); /* slate-600 transparent */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.8); /* slate-500 */
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.3s ease;
+}
+
+*:hover {
+  scrollbar-color: rgba(71, 85, 105, 0.5) transparent;
+}

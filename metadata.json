@@ -1,0 +1,6 @@
+{
+  "name": "Al Muttaqin Master Chef",
+  "description": "Aplikasi penilaian Al Muttaqin Master Chef dengan fitur input nilai juri, rekapitulasi skor otomatis, dashboard admin, dan papan skor live untuk penonton menggunakan Supabase.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
