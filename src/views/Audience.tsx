@@ -1,12 +1,11 @@
 import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { Trophy, ChefHat, ArrowLeft, Activity, AlertTriangle } from "lucide-react";
 import { useData } from "../context/DataContext";
 import { LeaderboardEntry } from "../types";
 
 export default function Audience() {
-  const { participants, scores, violationRecords } = useData();
+  const { participants, scores, violationRecords, violationDefs } = useData();
 
   const leaderboard: LeaderboardEntry[] = useMemo(() => {
     return participants.map((p) => {
@@ -30,11 +29,6 @@ export default function Audience() {
       };
     }).sort((a, b) => b.final_score - a.final_score);
   }, [participants, scores, violationRecords]);
-
-  const chartData = leaderboard.map(l => ({
-    name: l.name,
-    score: l.final_score
-  })).slice(0, 5);
 
   const topParticipant = leaderboard[0];
 
@@ -145,9 +139,9 @@ export default function Audience() {
                           <p className="text-slate-400 text-[10px] lg:text-xs font-bold uppercase mb-0.5 lg:mb-1">Skor Masuk</p>
                           <p className="text-lg lg:text-2xl font-bold text-white">{topParticipant.total_score}</p>
                        </div>
-                       <div className="bg-slate-800/80 rounded-xl p-2 lg:p-4 text-center flex flex-col justify-center">
-                          <p className="text-slate-400 text-[10px] lg:text-xs font-bold uppercase mb-0.5 lg:mb-1">Pengurangan</p>
-                          <p className="text-lg lg:text-2xl font-bold text-red-400">{topParticipant.total_penalty > 0 ? `-${topParticipant.total_penalty}` : '0'}</p>
+                       <div className="bg-red-500/10 rounded-xl p-2 lg:p-4 text-center flex flex-col justify-center border border-red-500/20">
+                          <p className="text-red-400 text-[10px] lg:text-xs font-bold uppercase mb-0.5 lg:mb-1">Pengurangan</p>
+                          <p className="text-lg lg:text-2xl font-bold text-red-500">{topParticipant.total_penalty > 0 ? `-${topParticipant.total_penalty}` : '0'}</p>
                        </div>
                        <div className="bg-amber-500/20 rounded-xl p-2 lg:p-4 text-center border border-amber-500/30 flex flex-col justify-center">
                           <p className="text-amber-500 text-[10px] lg:text-xs font-bold uppercase mb-0.5 lg:mb-1">Poin Akhir</p>
@@ -162,43 +156,37 @@ export default function Audience() {
               </div>
             )}
 
-            {/* Chart */}
+            {/* Violation History */}
             <div className="flex-1 bg-slate-800/30 border border-slate-700/50 rounded-2xl lg:rounded-3xl p-4 lg:p-6 flex flex-col min-h-0 overflow-hidden">
-               <h3 className="text-slate-400 font-bold mb-2 lg:mb-6 uppercase tracking-wider text-xs lg:text-sm shrink-0">Grafik Poin Akhir 5 Besar</h3>
-               <div className="flex-1 min-h-0 relative">
-                  {chartData.length > 0 ? (
-                    <div className="absolute inset-0">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                          <XAxis 
-                            dataKey="name" 
-                            stroke="#64748b" 
-                            fontSize={12} 
-                            tickLine={false}
-                            axisLine={false}
-                            tickFormatter={(val) => val.length > 10 ? val.substring(0, 10) + '...' : val}
-                          />
-                          <YAxis stroke="#475569" fontSize={12} tickLine={false} axisLine={false} />
-                          <Tooltip 
-                            cursor={{fill: '#1e293b'}} 
-                            contentStyle={{backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '12px', fontWeight: 'bold'}}
-                            itemStyle={{color: '#f59e0b'}}
-                          />
-                          <Bar 
-                            dataKey="score" 
-                            radius={[6, 6, 0, 0]}
-                            animationDuration={1000}
-                          >
-                            {chartData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.score < 0 ? '#ef4444' : (index === 0 ? '#f59e0b' : '#3b82f6')} />
-                            ))}
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
+               <h3 className="text-slate-400 font-bold mb-2 lg:mb-4 uppercase tracking-wider text-xs lg:text-sm shrink-0 flex items-center">
+                  <AlertTriangle className="w-4 h-4 mr-2" />
+                  Riwayat Pelanggaran Terbaru
+               </h3>
+               <div className="flex-1 min-h-[200px] w-full overflow-y-auto pr-2 space-y-3">
+                  {violationRecords.length > 0 ? (
+                    [...violationRecords].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 50).map((record) => {
+                      const participant = participants.find(p => p.id === record.participant_id);
+                      const violationDef = violationDefs.find(v => v.id === record.violation_id);
+                      
+                      return (
+                        <div key={record.id} className="bg-slate-800/80 border border-red-500/20 rounded-xl p-3 lg:p-4 flex items-center justify-between">
+                          <div className="flex-1 min-w-0 pr-4">
+                            <p className="text-white font-bold text-sm lg:text-base truncate">
+                              {participant?.name || 'Peserta Tidak Diketahui'}
+                            </p>
+                            <p className="text-slate-400 text-xs lg:text-sm truncate mt-0.5">
+                              {violationDef?.name || 'Pelanggaran Tidak Diketahui'}
+                            </p>
+                          </div>
+                          <div className="bg-red-500/10 text-red-500 font-bold px-3 py-1.5 rounded-lg border border-red-500/20 text-sm whitespace-nowrap">
+                            -{record.penalty_applied} Pts
+                          </div>
+                        </div>
+                      );
+                    })
                   ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-slate-600">
-                       Belum ada data grafik
+                    <div className="h-full flex items-center justify-center text-slate-600">
+                       Belum ada pelanggaran yang dicatat
                     </div>
                   )}
                </div>
