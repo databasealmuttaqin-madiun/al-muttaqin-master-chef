@@ -40,13 +40,24 @@ export default function Admin() {
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 p-6 md:p-12 pb-24">
       <div className="max-w-7xl mx-auto space-y-8">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <Link to="/" className="inline-flex items-center text-slate-400 hover:text-white transition-colors">
             <ArrowLeft className="w-5 h-5 mr-2" /> Kembali ke Login
           </Link>
-          <div className="flex items-center space-x-2 bg-emerald-500/10 text-emerald-500 px-4 py-2 rounded-full border border-emerald-500/20">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-sm font-medium">Sistem Admin Aktif</span>
+          <div className="flex flex-wrap items-center gap-3">
+             <Link to="/audience" className="bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 px-4 py-2 rounded-xl text-sm font-medium transition-colors border border-blue-500/20">
+                Layar Penonton
+             </Link>
+             <Link to="/judge/admin-juri" className="bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 px-4 py-2 rounded-xl text-sm font-medium transition-colors border border-amber-500/20">
+                Mode Juri
+             </Link>
+             <Link to="/supervisor/admin-pengawas" className="bg-red-500/10 text-red-400 hover:bg-red-500/20 px-4 py-2 rounded-xl text-sm font-medium transition-colors border border-red-500/20">
+                Mode Pengawas
+             </Link>
+            <div className="flex items-center space-x-2 bg-emerald-500/10 text-emerald-500 px-4 py-2 rounded-xl border border-emerald-500/20 ml-auto">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-sm font-medium">Sistem Admin Aktif</span>
+            </div>
           </div>
         </div>
 
