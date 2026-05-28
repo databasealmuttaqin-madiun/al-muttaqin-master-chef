@@ -65,19 +65,19 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       const channel = supabase
         .channel("schema-db-changes")
         .on("postgres_changes", { event: "*", schema: "public", table: "participants" }, (payload) => {
-          if (payload.eventType === "INSERT") setParticipants((prev) => [...prev, payload.new as Participant]);
+          if (payload.eventType === "INSERT") setParticipants((prev) => prev.some(p => p.id === payload.new.id) ? prev : [...prev, payload.new as Participant]);
         })
         .on("postgres_changes", { event: "*", schema: "public", table: "judges" }, (payload) => {
-          if (payload.eventType === "INSERT") setJudges((prev) => [...prev, payload.new as Judge]);
+          if (payload.eventType === "INSERT") setJudges((prev) => prev.some(j => j.id === payload.new.id) ? prev : [...prev, payload.new as Judge]);
         })
         .on("postgres_changes", { event: "*", schema: "public", table: "scores" }, (payload) => {
-          if (payload.eventType === "INSERT") setScores((prev) => [...prev, payload.new as Score]);
+          if (payload.eventType === "INSERT") setScores((prev) => prev.some(s => s.id === payload.new.id) ? prev : [...prev, payload.new as Score]);
         })
         .on("postgres_changes", { event: "*", schema: "public", table: "violation_definitions" }, (payload) => {
-          if (payload.eventType === "INSERT") setViolationDefs((prev) => [...prev, payload.new as ViolationDefinition]);
+          if (payload.eventType === "INSERT") setViolationDefs((prev) => prev.some(v => v.id === payload.new.id) ? prev : [...prev, payload.new as ViolationDefinition]);
         })
         .on("postgres_changes", { event: "*", schema: "public", table: "violation_records" }, (payload) => {
-          if (payload.eventType === "INSERT") setViolationRecords((prev) => [...prev, payload.new as ViolationRecord]);
+          if (payload.eventType === "INSERT") setViolationRecords((prev) => prev.some(v => v.id === payload.new.id) ? prev : [...prev, payload.new as ViolationRecord]);
         })
         .subscribe();
 
